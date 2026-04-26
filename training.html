@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Тренажёр: НОК и периодические события (5 класс)</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --card: #fff;
+      --text: #1a1d26;
+      --muted: #5a6270;
+      --border: #e1e5ee;
+      --ok: #1e7a4d;
+      --ok-bg: #e8f5ee;
+      --err: #b42318;
+      --err-bg: #fceeee;
+      --btn: #3b5bdb;
+      --btn-h: #2f4ac4;
+      --hint: #6b4f1d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      max-width: 48rem;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 0.5rem;
+    }
+    h1 { font-size: 1.35rem; margin: 0 0 0.5rem; }
+    .lead { color: var(--muted); font-size: 0.95rem; margin: 0 0 1rem; }
+    .info {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .info strong { color: var(--text); }
+    .info a { color: var(--btn); }
+    main { max-width: 48rem; margin: 0 auto; padding: 1rem 1rem 3rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.1rem 1.15rem 1.15rem;
+      margin-bottom: 1rem;
+    }
+    .card h2 { font-size: 1.05rem; margin: 0 0 0.6rem; }
+    .task-text { margin: 0 0 1rem; white-space: pre-wrap; }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.75rem;
+      align-items: center;
+    }
+    label { font-size: 0.9rem; color: var(--muted); }
+    input[type="text"] {
+      width: 8.5rem;
+      padding: 0.5rem 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    button {
+      font: inherit;
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      border: none;
+      background: var(--btn);
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover { background: var(--btn-h); }
+    button.secondary {
+      background: #6c7688;
+    }
+    button.secondary:hover { background: #5a636f; }
+    .status {
+      margin-top: 0.65rem;
+      padding: 0.6rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      display: none;
+    }
+    .status.show { display: block; }
+    .status.ok { background: var(--ok-bg); color: #145a36; border: 1px solid #b8e0c8; }
+    .status.bad { background: var(--err-bg); color: var(--err); border: 1px solid #f0c4c0; }
+    .solution { margin-top: 0.5rem; font-size: 0.9rem; }
+    .hints-block { margin-top: 0.85rem; border-top: 1px dashed var(--border); padding-top: 0.75rem; }
+    .hints-block h3 { font-size: 0.9rem; margin: 0 0 0.4rem; color: var(--hint); }
+    .hint-list { margin: 0; padding-left: 1.2rem; font-size: 0.88rem; }
+    .hint-list li { margin: 0.3rem 0; }
+    .lock-msg { font-size: 0.88rem; color: var(--muted); margin: 0.3rem 0 0.5rem; }
+    @media (max-width: 520px) {
+      input[type="text"] { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Математика · НОК, периоды и «один слышимый удар»</h1>
+    <p class="lead">Тренировка к вступительному. Введи ответ — нажми «Проверить». Подсказки открываются по секретному коду, который даст учитель (на странице учащемуся не показан).</p>
+    <div class="info">
+      <strong>Похожие задачи в интернете</strong> (тот же смысл — «встреча в моменты, кратные …» / НОК):<br />
+      <a href="https://problems.ru/view_problem_details_new.php?id=32801" target="_blank" rel="noopener">Задачник <code>problems.ru</code> (пример #32801)</a> ·
+      <a href="https://infourok.ru/kontrolnaya-rabota-nod-i-nok-chisel-klass-uchebnik-sm-nikolskiy-823627.html" target="_blank" rel="noopener">контрольные по НОК (5 кл.)</a> ·
+      <a href="https://testedu.ru/test/matematika/5-klass/zadachi-na-nod-i-nok.html" target="_blank" rel="noopener">тесты на НОД/НОК</a>
+    </div>
+  </header>
+  <main id="app"></main>
+
+  <script>
+    const HINT_PASSWORD = String.fromCharCode(49, 53, 48, 50);
+
+    const tasks = [
+      {
+        title: "Задача 1. Два трамвая",
+        text: "Два трамвая вышли с конечной одновременно. Первый курсирует каждые 4 минуты, второй — каждые 6 минут. Через сколько минут после общего старта они в первый раз снова окажутся на конечной одновременно?",
+        answers: ["12"],
+        solution: "События повторяются через 4 и 6 мин. Совпадение в момент, кратном и 4, и 6, то есть через НОК(4, 6) = 2²·3 = 12 минут.",
+        hints: [
+          "Найди кратные 4: 0, 4, 8, 12, … и кратные 6: 0, 6, 12, … Первый общий (после нуля) кратный — …",
+          "НОК(4, 6) = наименьшее число, которое делится и на 4, и на 6. Расклад: 4 = 2², 6 = 2·3 → взяли максимальные степени: 2²·3.",
+          "Проверка: 12 делится на 4? да. на 6? да. Меньше 12 с этим свойством нет. Ответ: 12."
+        ]
+      },
+      {
+        title: "Задача 2. Три маяка",
+        text: "Три сигнальных маяка мигают так: первый — каждые 2 с, второй — каждые 3 с, третий — каждые 5 с, и в момент t = 0 все три вспыхнули разом. Через сколько целых секунд в следующий раз все три вспыхнут вместе?",
+        answers: ["30"],
+        solution: "Все вместе, когда t кратен 2, 3 и 5, то есть t кратен НОК(2, 3, 5) = 30. Следующий общий всплеск — через 30 с (после 0).",
+        hints: [
+          "Следующий общий момент (после нуля) — наименьшее положительное число, кратное всем трём периодам.",
+          "Периоды 2, 3, 5 взаимно простые попарно, кроме того что 2 и 3 взаимно просты, 3 и 5 тоже… НОК = произведение.",
+          "2·3·5 = 30. Ответ: 30."
+        ]
+      },
+      {
+        title: "Задача 3. Кораблики на стене",
+        text: "По круглой ванне плывут два кораблика от одной и той же точки. Первый возвращается в неё через каждую 6 мин, второй — через каждую 8 мин. Кораблики снова встретились в этой точке. Какой был наименьший (положительный) промежуток времени, если сразу после встречи в старте (в момент 0) они плывут в первый круг?",
+        answers: ["24"],
+        solution: "Встреча, когда момент кратен 6 и 8 → НОК(6, 8) = 2³·3 = 24 мин.",
+        hints: [
+          "Ищем наименьшее t > 0, такое что t кратно и 6, и 8.",
+          "Разбери: 6 = 2·3, 8 = 2³. В НОК взяли 2 из максимальной степени и 3: получилось 24.",
+          "24 мин — первый общий срок после старта. Ответ: 24."
+        ]
+      },
+      {
+        title: "Задача 4. Шарики",
+        text: "Два круглых диска крутятся: на первом каждую 4-ю клетку красный шарик, на втором — каждую 6-ю. Оба шарика стоят в одной «нулевой» клетке. Через сколько шагов оборота (от нуля) они одновременно вновь встанут в одну клетку в первый раз?",
+        answers: ["12"],
+        solution: "НОК(4, 6) = 12 шагов. (Та же арифметика, что и в задаче 1, другая сказка.)",
+        hints: [
+          "Задай себе вопрос: кратен ли номер клетки и 4, и 6? Найди наименьший положительный такой номер.",
+          "НОК(4, 6) = 12.",
+          "4·3 = 12, 6·2 = 12. Ответ: 12."
+        ]
+      },
+      {
+        title: "Задача 5. Удары, как в примере (два, потом третьи)",
+        text: "Двое часов ударяют вместе в нулевой секунде. Первые — каждые 2 с, вторые — каждые 3 с. Когда в следующий раз они вместе, к ним в этот момент присоединяются третьи, которые с этого же момента бьют каждые 5 с. Сколько слышимых ударов (совпавшие = один) с момента 0 с до последнего общего удара всех трёчасов, включая начало 0 с?",
+        answers: ["27"],
+        solution: "Совпадение первых двух через НОК(2,3)=6 с. Третьи бьют в 6+5k. Все трое в моменте, кратном НОК(2,3,5)=30 после стыковки, то есть 6+30=36 с. Счёт уникальных моментов от 0 до 36: у первых 19, у вторых 13, у третьих (6,11,…,36) — 7; вместе не повторная подсчёт 27 (формула включения-исключения или отметки на осье).",
+        hints: [
+          "Сначала: когда вместе 1-я и 2-я? Это кратно и 2, и 3 → … с.",
+          "Там же подключается 3-я, значит с 6 с: моменты 6+5k. Когда вместе все? НОК(2,3,5) после 6-го → +30 с → 36 с.",
+          "Собери множество ударов: 0,2,4,…,36; 0,3,6,…,36; 6,11,16,…,36. Объедини, совпавшие — один. Получается 27."
+        ]
+      },
+      {
+        title: "Задача 6. Автобусы (отрезок времени)",
+        text: "С остановки автобусы A и B отправляются в течение с 0-й по 24-ю минуту включительно, считая от нуля. A ходит каждые 2 мин, B — каждые 3 мин, оба в нулевую минуту сидят. Сколько раз за это время (включая 0 и 24) произойдёт момент, в который отходит хотя бы один из автобусов? (Если в одну минуту — оба, засчитать один момент.)",
+        answers: ["17"],
+        solution: "Множество минут, кратных 2: 0…24 — 13 значений. Кратных 3: 0…24 — 9 значений. Кратных 6: 0,6,12,18,24 — 5. По в-i: 13+9−5 = 17.",
+        hints: [
+          "Считай, сколько кратен 2 от 0 до 24, сколько кратен 3, и вычитай кратные 6 дважды.",
+          "Кратных 2: 13, кратных 3: 9, кратных 6: 5.",
+          "13 + 9 − 5 = 17."
+        ]
+      },
+      {
+        title: "Задача 7. Светофор A и B",
+        text: "Светофор A мигает каждые 2 с, B — каждые 3 с, и в 0 с оба зелёные. Сколько слышимых «смен» (считая, что в одну секунду, если вспыхнули оба — слышно одно) произойдёт с 0 с по 20 с включительно?",
+        answers: ["14"],
+        solution: "Кратные 2: 0…20 — 11. Кратные 3: 0…20 — 7. Кратные 6: 0,6,12,18 — 4. 11+7−4 = 14.",
+        hints: [
+          "Это объединение двух арифметических прогрессий. Используй НОК(2,3)=6.",
+          "Посчитай отдельно и убери дубли по кратным 6.",
+          "11 + 7 − 4 = 14."
+        ]
+      },
+      {
+        title: "Задача 8. Снова 2, 3 и 5, но сразу",
+        text: "Три колокола звонят периодами 2 с, 3 с и 5 с и в момент 0 все три ударили. Через сколько полных секунд после 0 (то есть в какой t > 0) в следующий раз снова ударят вместе?",
+        answers: ["30"],
+        solution: "Следующий общий момент после 0: НОК(2,3,5) = 30 с.",
+        hints: [
+          "Следующий общий удар — в наименьшем t > 0, кратном 2, 3 и 5.",
+          "Числа попарно взаимно просты (2,3,5), поэтому НОК = 2·3·5.",
+          "Ответ: 30."
+        ]
+      },
+      {
+        title: "Задача 9. Тележки (НОК трёх чисел)",
+        text: "По круглому рельсу катаются три фигурки: A каждые 4 мин, B каждые 6 мин, C каждые 9 мин, и в 0 мин все в одной точке. В какой наименьший момент t > 0 все три снова вместе?",
+        answers: ["36"],
+        solution: "НОК(4, 6, 9): 4=2², 6=2·3, 9=3² → НОК = 2²·3² = 4·9 = 36 мин.",
+        hints: [
+          "Раскладываем: 2², 2·3, 3². Берём максимальные степени каждого простого.",
+          "2² = 4, 3² = 9, перемножь: 36.",
+          "Проверь: 36 : 4, : 6, : 9 — везде целое. Меньшего нет. Ответ: 36."
+        ]
+      },
+      {
+        title: "Задача 10. Двое и объединение на отрезке",
+        text: "Два пиксельных огонька: первый вспыхивает в секунды, кратные 2, второй — в секунды, кратные 5, от 0 до 20 с включительно. Сколько слышимых вспышек (считая совпавшие — как одну) за 0—20 с?",
+        answers: ["13"],
+        solution: "Кратных 2: 0,2,…,20 — 11. Кратных 5: 0,5,…,20 — 5. Кратных 10: 0,10,20 — 3. 11+5−3 = 13.",
+        hints: [
+          "Посчитай кратные 2, кратные 5, вычти кратные 10 (там вспышки слились).",
+          "Кратных 2 на отрезке: 11. Кратных 5: 5. Кратных 10: 3.",
+          "11 + 5 − 3 = 13."
+        ]
+      }
+    ];
+
+    function normAnswer(s) {
+      return String(s)
+        .trim()
+        .replace(/\s+/g, "")
+        .replace(",", ".");
+    }
+
+    function checkAnswer(given, accepted) {
+      const g = normAnswer(given);
+      for (const a of accepted) {
+        if (normAnswer(String(a)) === g) return true;
+      }
+      return false;
+    }
+
+    const unlocked = {};
+
+    function isUnlocked(id) {
+      return !!unlocked[id];
+    }
+
+    function tryUnlock(id) {
+      if (isUnlocked(id)) return true;
+      const p = window.prompt("Код от учителя, чтобы открыть подсказку («" + tasks[id].title + "»):");
+      if (p === HINT_PASSWORD) {
+        unlocked[id] = true;
+        return true;
+      }
+      if (p !== null) alert("Код неверный. Спроси у учителя.");
+      return false;
+    }
+
+    function render() {
+      const app = document.getElementById("app");
+      app.innerHTML = "";
+      tasks.forEach((t, i) => {
+        const id = "task-" + i;
+        const card = document.createElement("section");
+        card.className = "card";
+        card.setAttribute("data-idx", String(i));
+
+        const h2 = document.createElement("h2");
+        h2.textContent = t.title;
+        const p = document.createElement("p");
+        p.className = "task-text";
+        p.textContent = t.text;
+
+        const row = document.createElement("div");
+        row.className = "row";
+        const label = document.createElement("label");
+        label.setAttribute("for", id);
+        label.textContent = "Ответ:";
+        const input = document.createElement("input");
+        input.id = id;
+        input.type = "text";
+        input.autocomplete = "off";
+        const btnCheck = document.createElement("button");
+        btnCheck.type = "button";
+        btnCheck.textContent = "Проверить";
+        const btnHint = document.createElement("button");
+        btnHint.type = "button";
+        btnHint.className = "secondary";
+        btnHint.textContent = "Следующая подсказка";
+        row.appendChild(label);
+        row.appendChild(input);
+        row.appendChild(btnCheck);
+        row.appendChild(btnHint);
+
+        const status = document.createElement("div");
+        status.className = "status";
+        const hintLevels = (window.__hintLevel || (window.__hintLevel = {}));
+
+        function showResult(ok) {
+          status.className = "status show " + (ok ? "ok" : "bad");
+          if (ok) {
+            status.textContent = "Верно!";
+            const sol = document.createElement("div");
+            sol.className = "solution";
+            sol.textContent = t.solution;
+            status.appendChild(sol);
+          } else {
+            status.textContent = "Пока неверно. Подумай ещё — или запроси подсказку (нужен код от учителя).";
+          }
+        }
+
+        const hintsBlock = document.createElement("div");
+        hintsBlock.className = "hints-block";
+        const h3 = document.createElement("h3");
+        h3.textContent = "Подсказки (по одной)";
+        const lock = document.createElement("p");
+        lock.className = "lock-msg";
+        lock.textContent = "Нажми «Следующая подсказка» — появится запрос кода. Код скажет учитель (у каждой карточки отдельный первый ввод, потом на этой карточке повторно не спрашивает).";
+
+        const list = document.createElement("ol");
+        list.className = "hint-list";
+
+        if (!(i in hintLevels)) hintLevels[i] = 0;
+
+        function refreshHintList() {
+          list.innerHTML = "";
+          const n = Math.min(hintLevels[i], t.hints.length);
+          for (let h = 0; h < n; h++) {
+            const li = document.createElement("li");
+            li.textContent = t.hints[h];
+            list.appendChild(li);
+          }
+        }
+        refreshHintList();
+
+        btnCheck.addEventListener("click", function () {
+          const v = input.value;
+          if (!v.trim()) {
+            status.className = "status show bad";
+            status.textContent = "Введи численный ответ.";
+            return;
+          }
+          const ok = checkAnswer(v, t.answers);
+          showResult(ok);
+        });
+
+        input.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") btnCheck.click();
+        });
+
+        btnHint.addEventListener("click", function () {
+          if (hintLevels[i] >= t.hints.length) {
+            alert("Все подсказки по этой задаче уже открыты.");
+            return;
+          }
+          if (!tryUnlock(i)) return;
+          hintLevels[i]++;
+          lock.textContent = isUnlocked(i) ? "Подсказок открыто: " + hintLevels[i] + " из " + t.hints.length + ". Код для этой карточки уже введён — следующие шаги без запроса."
+            : lock.textContent;
+          refreshHintList();
+        });
+
+        btnHint.setAttribute("aria-label", "Следующая подсказка, нужен код от учителя");
+
+        hintsBlock.appendChild(h3);
+        hintsBlock.appendChild(lock);
+        hintsBlock.appendChild(list);
+
+        card.appendChild(h2);
+        card.appendChild(p);
+        card.appendChild(row);
+        card.appendChild(status);
+        card.appendChild(hintsBlock);
+        app.appendChild(card);
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>
